@@ -1,0 +1,4 @@
+order_id,customer_id,product_id,quantity,order_date,rejection_reason
+O1007,C999,P002,2,2026-10-07,Unknown customer; 
+O1008,C006,P003,0,2026-10-08,Invalid quantity; 
+O1009,C002,P004,-1,2026-10-09,Invalid quantity; 
