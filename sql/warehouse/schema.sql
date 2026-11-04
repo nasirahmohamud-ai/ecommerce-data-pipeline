@@ -54,10 +54,12 @@ CREATE TABLE IF NOT EXISTS dim_date (
 -- =========================================
 -- 4. SALES FACT TABLE
 -- =========================================
-
 CREATE TABLE IF NOT EXISTS fact_sales (
     sales_key BIGINT AUTO_INCREMENT PRIMARY KEY,
     order_id VARCHAR(10) NOT NULL,
+
+    CONSTRAINT uq_fact_sales_order UNIQUE (order_id),
+
     customer_key INT NOT NULL,
     product_key INT NOT NULL,
     date_key INT NOT NULL,

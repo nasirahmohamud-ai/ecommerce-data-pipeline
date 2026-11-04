@@ -1,4 +1,5 @@
-
+from sqlalchemy import create_engine
+from sqlalchemy.engine import URL
 import mysql.connector
 import pandas as pd
 import os
@@ -36,6 +37,21 @@ def get_connection(database):
     )
 
     return connection
+
+def get_engine(database):
+
+    connection_url = URL.create(
+        drivername="mysql+mysqlconnector",
+        username=DB_CONFIG["user"],
+        password=DB_CONFIG["password"],
+        host=DB_CONFIG["host"],
+        port=DB_CONFIG["port"],
+        database=database
+    )
+
+    engine = create_engine(connection_url)
+
+    return engine
 
 
 def load_customers(source_connection, warehouse_connection):
@@ -227,14 +243,14 @@ def load_sales(source_connection, warehouse_connection):
 
 if __name__ == "__main__":
 
-    source_connection = get_connection(SOURCE_DB)
+    source_engine = get_engine(SOURCE_DB)
     warehouse_connection = get_connection(WAREHOUSE_DB)
 
     try:
-        load_customers(source_connection, warehouse_connection)
-        load_products(source_connection, warehouse_connection)
-        load_sales(source_connection, warehouse_connection)
+        load_customers(source_engine, warehouse_connection)
+        load_products(source_engine, warehouse_connection)
+        load_sales(source_engine, warehouse_connection)
 
     finally:
-        source_connection.close()
+        source_engine.dispose()
         warehouse_connection.close()
