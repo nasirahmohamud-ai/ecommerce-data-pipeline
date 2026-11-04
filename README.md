@@ -1,34 +1,83 @@
+# E-commerce Data Engineering Pipeline
 
-# E-commerce Data Pipeline
+An end-to-end data engineering project that extracts, cleans, validates, transforms and loads e-commerce data into a MySQL data warehouse using Python and SQL.
+
+The project demonstrates an automated ETL workflow, relational database design, dimensional modelling, data quality checks, pipeline logging and automated testing.
 
 ## Project Overview
 
-This project is an end-to-end data pipeline built using Python, MySQL and SQL.
+This project simulates an e-commerce business that needs to process customer, product and order data for reporting and analysis.
 
-It processes raw e-commerce data, cleans and validates records, and loads the resulting data into a MySQL database for analysis.
+The pipeline takes raw CSV data, cleans and validates it, loads it into a MySQL source database, and transforms it into a separate data warehouse designed using a star schema.
 
-The project demonstrates fundamental data engineering concepts, including data cleaning, data validation, database management, pipeline orchestration, logging and SQL analytics.
+The final warehouse is structured to support business intelligence and analytical reporting.
+
+## Architecture
+
+The pipeline follows this execution sequence:
+
+1. Create the source MySQL database.
+2. Create the data warehouse and its tables.
+3. Clean raw order data.
+4. Validate data quality.
+5. Load cleaned data into the source database.
+6. Populate the date dimension.
+7. Load dimensions and sales facts into the warehouse.
+
+### Data Flow
+
+`CSV Files → Python ETL → Data Cleaning → Data Validation → MySQL Source Database → Data Warehouse → Business Intelligence`
 
 ## Technologies Used
 
-- Python
-- MySQL
-- SQL
-- Pandas
-- MySQL Connector/Python
-- Pytest
-- Git and GitHub
+- **Python** – ETL development and pipeline orchestration.
+- **Pandas** – Data manipulation and transformation.
+- **MySQL** – Relational database and data warehouse.
+- **SQL** – Database creation, queries and analytical transformations.
+- **Pytest** – Automated testing.
+- **Python Logging** – Pipeline execution monitoring.
+- **Git and GitHub** – Version control and project hosting.
 
+## Data Warehouse Design
 
-## Pipeline Workflow
+The project uses a star schema consisting of four tables:
 
-The pipeline follows these stages:
+| Table | Description |
+|---|---|
+| `fact_sales` | Stores sales transactions and measures |
+| `dim_customer` | Stores customer information |
+| `dim_product` | Stores product information |
+| `dim_date` | Stores calendar and date attributes |
 
-1. **Database Setup** – Creates the MySQL database and tables if they do not already exist.
-2. **Data Cleaning** – Removes exact duplicate records and separates invalid orders from valid records.
-3. **Data Validation** – Checks for missing values, duplicate order IDs, invalid quantities and missing dates.
-4. **Data Loading** – Loads customers, products and valid orders into MySQL.
-5. **SQL Analytics** – Uses SQL queries to analyse product revenue, customer spending and inactive customers.
+The fact table connects to the three dimension tables through foreign keys.
+
+This design makes it easier to analyse sales by customer, product and date.
+
+## Data Cleaning and Quality
+
+The cleaning process handles:
+
+- Duplicate order records.
+- Orders with unknown customers.
+- Orders with zero or negative quantities.
+- Separation of valid and rejected records.
+
+The original sample contained 11 order records. After cleaning, 7 valid records were retained and 3 rejected. One duplicate record was removed.
+
+## Key Results
+
+The current sample dataset produces the following results:
+
+| Metric | Result |
+|---|---:|
+| Valid orders loaded | 7 |
+| Units sold | 15 |
+| Total sales revenue | R2,439.85 |
+| Average order value | R348.55 |
+| Customers | 6 |
+| Products | 5 |
+
+These figures are calculated from the current sample data and are not intended to represent a real business.
 
 ## Project Structure
 
@@ -36,31 +85,43 @@ The pipeline follows these stages:
 ecommerce-data-pipeline/
 │
 ├── data/
-│   ├── processed/
 │   ├── customers.csv
+│   ├── orders.csv
 │   ├── products.csv
-│   └── orders.csv
-│
-├── logs/
-│   └── pipeline.log
-│
-├── src/
-│   ├── create_database.py
-│   ├── clean_data.py
-│   ├── validate_data.py
-│   ├── load_data.py
-│   ├── run_pipeline.py
-│   └── schema.sql
+│   └── processed/
+│       ├── clean_orders.csv
+│       └── rejected_orders.csv
 │
 ├── sql/
-│   └── analytics/
-│       ├── customer_revenue.sql
-│       ├── product_revenue.sql
-│       └── inactive_customers.sql
+│   ├── sales_analysis.sql
+│   ├── analytics/
+│   │   ├── customer_revenue.sql
+│   │   ├── inactive_customers.sql
+│   │   └── product_revenue.sql
+│   └── warehouse/
+│       └── schema.sql
+│
+├── src/
+│   ├── clean_data.py
+│   ├── create_database.py
+│   ├── create_warehouse.py
+│   ├── load_data.py
+│   ├── load_dates.py
+│   ├── load_warehouse.py
+│   ├── profile_data.py
+│   ├── run_pipeline.py
+│   ├── schema.sql
+│   ├── test_connection.py
+│   └── validate_data.py
 │
 ├── tests/
-├── requirements.txt
+│   ├── test_clean_data.py
+│   ├── test_load_data.py
+│   └── test_load_warehouse.py
+│
+├── logs/
 ├── .gitignore
+├── requirements.txt
 └── README.md
 ```
 
@@ -69,7 +130,7 @@ ecommerce-data-pipeline/
 ### 1. Clone the repository
 
 ```bash
-git clone <your-github-repository-url>
+git clone https://github.com/nasirahmohamud-ai/ecommerce-data-pipeline.git
 cd ecommerce-data-pipeline
 ```
 
@@ -79,25 +140,21 @@ cd ecommerce-data-pipeline
 python -m venv .venv
 ```
 
-### 3. Activate the virtual environment
-
-On Windows PowerShell:
+Activate it on Windows PowerShell:
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-### 4. Install dependencies
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 5. Configure environment variables
+### 4. Configure database credentials
 
-Create a `.env` file in the project root directory.
-
-Add your MySQL connection settings:
+Create a `.env` file in the project root:
 
 ```env
 DB_HOST=localhost
@@ -109,66 +166,55 @@ DB_NAME=ecommerce_dw
 
 Replace `your_mysql_password` with your own MySQL password.
 
-**Security:** Never upload your `.env` file or database password to GitHub.
+Keep `.env` private and never commit it to GitHub.
 
-### 6. Run the pipeline
+### 5. Run the pipeline
 
-```bash
-python src/run_pipeline.py
+Make sure your MySQL server is running, then execute:
+
+```powershell
+python .\src\run_pipeline.py
 ```
 
-## SQL Analytics
+The pipeline automatically creates the source database and warehouse tables, processes the data and loads the warehouse.
 
-The project includes SQL queries stored in `sql/analytics/`:
+Execution logs are recorded in:
 
-| SQL File | Purpose |
-|---|---|
-| `product_revenue.sql` | Calculates revenue and items sold per product. |
-| `customer_revenue.sql` | Analyses customer spending and order counts. |
-| `inactive_customers.sql` | Identifies customers who have not placed orders. |
+```text
+logs/pipeline.log
+```
 
-These queries demonstrate SQL aggregation, joins, grouping, sorting and filtering.
+## Running Automated Tests
 
-## Data Quality and Testing
+Run the complete test suite:
 
-The project includes automated tests using Pytest.
-
-The tests cover:
-
-- Data cleaning and duplicate removal.
-- Validation of cleaned order records.
-- Customer, product and order loading functions.
-- Duplicate update SQL statement handling.
-
-Run the tests using:
-
-```bash
+```powershell
 python -m pytest -v
 ```
 
-## Current Project Results
+The project currently has **13 passing automated tests** covering data cleaning, source database loading and warehouse loading.
 
-The sample dataset contains:
-
-| Metric | Result |
-|---|---:|
-| Customers loaded | 6 |
-| Products loaded | 5 |
-| Valid orders loaded | 7 |
-| Rejected orders | 3 |
-| Total items sold | 15 |
-| Total revenue | R2,439.85 |
-
-The pipeline successfully cleans, validates and loads the sample data into MySQL.
-
+The warehouse loader tests use mocked database operations, so they do not require a live MySQL connection.
 
 ## Future Improvements
 
 Potential future enhancements include:
 
-- Automating pipeline execution on a scheduled basis.
-- Adding more advanced data quality checks.
-- Expanding SQL analytics and reporting.
-- Building a Power BI dashboard using the loaded data.
-- Implementing more comprehensive database integration tests.
-- Improving pipeline monitoring and error reporting.
+- Building a Power BI dashboard connected to the data warehouse.
+- Adding larger and more realistic datasets.
+- Improving pipeline error handling and monitoring.
+- Containerising the application using Docker.
+- Deploying the pipeline to a cloud environment.
+- Introducing a dedicated workflow orchestration tool.
+
+## Author
+
+**Nasirah Mohamud**
+
+Aspiring Data Engineer
+
+GitHub: [nasirahmohamud-ai](https://github.com/nasirahmohamud-ai)
+
+---
+
+*This project was developed as a hands-on learning and portfolio project to demonstrate practical data engineering skills.*

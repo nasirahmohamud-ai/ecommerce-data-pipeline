@@ -1,43 +1,85 @@
 
--- 1. Create the database if it does not exist
-CREATE DATABASE IF NOT EXISTS ecommerce_dw;
+-- =========================================
+-- E-COMMERCE DATA WAREHOUSE
+-- =========================================
 
--- 2. Select the database
-USE ecommerce_dw;
+CREATE DATABASE IF NOT EXISTS ecommerce_warehouse;
 
--- 3. Create the customers table
-CREATE TABLE IF NOT EXISTS customers (
-    customer_id VARCHAR(10) PRIMARY KEY,
+USE ecommerce_warehouse;
+
+
+-- =========================================
+-- 1. CUSTOMER DIMENSION
+-- =========================================
+
+CREATE TABLE IF NOT EXISTS dim_customer (
+    customer_key INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id VARCHAR(10) NOT NULL UNIQUE,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     email VARCHAR(255),
     city VARCHAR(100)
 ) ENGINE=InnoDB;
 
--- 4. Create the products table
-CREATE TABLE IF NOT EXISTS products (
-    product_id VARCHAR(10) PRIMARY KEY,
+
+-- =========================================
+-- 2. PRODUCT DIMENSION
+-- =========================================
+
+CREATE TABLE IF NOT EXISTS dim_product (
+    product_key INT AUTO_INCREMENT PRIMARY KEY,
+    product_id VARCHAR(10) NOT NULL UNIQUE,
     product_name VARCHAR(150) NOT NULL,
-    category VARCHAR(100) NOT NULL,
-    unit_price DECIMAL(10,2) NOT NULL
+    category VARCHAR(100) NOT NULL
 ) ENGINE=InnoDB;
 
--- 5. Create the orders table
-CREATE TABLE IF NOT EXISTS orders (
-    order_id VARCHAR(10) PRIMARY KEY,
-    customer_id VARCHAR(10) NOT NULL,
-    product_id VARCHAR(10) NOT NULL,
+
+-- =========================================
+-- 3. DATE DIMENSION
+-- =========================================
+
+CREATE TABLE IF NOT EXISTS dim_date (
+    date_key INT PRIMARY KEY,
+    full_date DATE NOT NULL UNIQUE,
+    day_number INT NOT NULL,
+    month_number INT NOT NULL,
+    month_name VARCHAR(20) NOT NULL,
+    quarter_number INT NOT NULL,
+    year_number INT NOT NULL,
+    day_name VARCHAR(20) NOT NULL,
+    is_weekend BOOLEAN NOT NULL
+) ENGINE=InnoDB;
+
+
+-- =========================================
+-- 4. SALES FACT TABLE
+-- =========================================
+
+CREATE TABLE IF NOT EXISTS fact_sales (
+    sales_key BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id VARCHAR(10) NOT NULL,
+    customer_key INT NOT NULL,
+    product_key INT NOT NULL,
+    date_key INT NOT NULL,
     quantity INT NOT NULL,
-    order_date DATE NOT NULL,
+    unit_price DECIMAL(10,2) NOT NULL,
+    sales_amount DECIMAL(12,2) NOT NULL,
 
-    CONSTRAINT fk_orders_customer
-        FOREIGN KEY (customer_id)
-        REFERENCES customers(customer_id),
+    CONSTRAINT fk_sales_customer
+        FOREIGN KEY (customer_key)
+        REFERENCES dim_customer(customer_key),
 
-    CONSTRAINT fk_orders_product
-        FOREIGN KEY (product_id)
-        REFERENCES products(product_id),
+    CONSTRAINT fk_sales_product
+        FOREIGN KEY (product_key)
+        REFERENCES dim_product(product_key),
 
-    CONSTRAINT chk_orders_quantity
-        CHECK (quantity > 0)
+    CONSTRAINT fk_sales_date
+        FOREIGN KEY (date_key)
+        REFERENCES dim_date(date_key),
+
+    CONSTRAINT chk_sales_quantity
+        CHECK (quantity > 0),
+
+    CONSTRAINT uq_fact_sales_order_product
+        UNIQUE (order_id, product_key)
 ) ENGINE=InnoDB;

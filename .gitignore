@@ -1,7 +1,22 @@
+# Python virtual environments
+venv/
 .venv/
+
+# Python cache files
 __pycache__/
 *.py[cod]
+
+# Environment variables and passwords
 .env
-.venv
+.env.*
+
+# Logs
 logs/
+*.log
+
+# Pytest
 .pytest_cache/
+
+# Test coverage
+.coverage
+htmlcov/
