@@ -125,6 +125,7 @@ ecommerce-data-pipeline/
 └── README.md
 ```
 
+
 ## Installation and Setup
 
 ### 1. Clone the repository
@@ -216,5 +217,9 @@ Aspiring Data Engineer
 GitHub: [nasirahmohamud-ai](https://github.com/nasirahmohamud-ai)
 
 ---
+
+## Dashboard Preview
+
+![Sales Performance Dashboard](screenshots/dashboard-overview.png)
 
 *This project was developed as a hands-on learning and portfolio project to demonstrate practical data engineering skills.*
